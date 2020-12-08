@@ -1,5 +1,6 @@
 const express = require("express");
 const tasks = require("../models/tasks");
+const users = require("../models/users");
 const router = new express.Router();
 
 //--------------tasks crud----------------
@@ -47,7 +48,9 @@ router.patch("/tasks/:taskid", async (req, res) => {
     return res.status(400).send("ERROR ! Invalid Update");
   }
   try {
-    const taskUpdate = taskUpdatesKeys.forEach((task) => {
+    const taskUpdate = await tasks.findById(req.params.userid);
+
+    taskUpdatesKeys.forEach((task) => {
       taskUpdatesKeys[task] = res.body[task];
     });
     await taskUpdate.save();
