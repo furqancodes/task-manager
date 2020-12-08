@@ -37,9 +37,9 @@ router.get("/tasks/:taskid", async (req, res) => {
 });
 //---------------------------update---------
 router.patch("/tasks/:taskid", async (req, res) => {
-  const taskUpdates = Object.keys(req.body);
+  const taskUpdatesKeys = Object.keys(req.body);
   const allowedTaskUpdates = ["description", "completed"];
-  const isUpdateValid = taskUpdates.every((taskUpdate) =>
+  const isUpdateValid = taskUpdatesKeys.every((taskUpdate) =>
     allowedTaskUpdates.includes(taskUpdate)
   );
 
@@ -47,14 +47,10 @@ router.patch("/tasks/:taskid", async (req, res) => {
     return res.status(400).send("ERROR ! Invalid Update");
   }
   try {
-    const updateTask = await tasks.findOneAndUpdate(
-      req.params.taskid,
-      req.body,
-      {
-        new: true,
-        runValidators: true,
-      }
-    );
+    const taskUpdate = taskUpdatesKeys.forEach((task) => {
+      taskUpdatesKeys[task] = res.body[task];
+    });
+    await taskUpdate.save();
     updateTask
       ? res.status(200).send(updateTask)
       : res.status(404).send("task not found");
