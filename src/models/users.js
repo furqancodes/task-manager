@@ -33,10 +33,11 @@ const userSchema = new mongoose.Schema({
   },
 });
 
-userSchema.pre("save", async function () {
+userSchema.pre("save", async function (next) {
   if (this.isModified("password")) {
     this.password = await bycryptjs.hash(this.password, 8);
   }
+  next();
 });
 
 const users = mongoose.model("users", userSchema);

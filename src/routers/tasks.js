@@ -1,6 +1,5 @@
 const express = require("express");
 const tasks = require("../models/tasks");
-const users = require("../models/users");
 const router = new express.Router();
 
 //--------------tasks crud----------------
@@ -48,14 +47,13 @@ router.patch("/tasks/:taskid", async (req, res) => {
     return res.status(400).send("ERROR ! Invalid Update");
   }
   try {
-    const taskUpdate = await tasks.findById(req.params.userid);
-
+    const taskUpdate = await tasks.findById(req.params.taskid);
     taskUpdatesKeys.forEach((task) => {
-      taskUpdatesKeys[task] = res.body[task];
+      taskUpdate[task] = req.body[task];
     });
     await taskUpdate.save();
-    updateTask
-      ? res.status(200).send(updateTask)
+    taskUpdate
+      ? res.status(200).send(taskUpdate)
       : res.status(404).send("task not found");
   } catch (updateTaskError) {
     res.status(400).send(updateTaskError);
@@ -64,11 +62,11 @@ router.patch("/tasks/:taskid", async (req, res) => {
 //-------------delete--------------------
 router.delete("/tasks/:taskid", async (req, res) => {
   try {
-    const taskUser = await tasks.findByIdAndDelete(req.params.taskid);
-    if (!taskUser) {
+    const taskDelete = await tasks.findByIdAndDelete(req.params.taskid);
+    if (!taskDelete) {
       res.status(404).send("not found");
     }
-    res.send(taskUser);
+    res.send(taskDelete);
   } catch (taskDeleteError) {
     res.status(500).send(taskDeleteError);
   }

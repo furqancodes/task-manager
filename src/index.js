@@ -25,4 +25,3 @@ const bcryptor = async () => {
   const isMatch = await bcryptjs.compare("poop", hashedPassword);
   console.log(isMatch);
 };
-bcryptor();
