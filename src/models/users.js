@@ -14,6 +14,7 @@ const userSchema = new mongoose.Schema({
   },
   email: {
     type: String,
+    unique: true,
     required: true,
     trim: true,
     validate(value) {
@@ -39,7 +40,17 @@ userSchema.pre("save", async function (next) {
   }
   next();
 });
-
+userSchema.statics.loginValidation = async (email, password) => {
+  const validatedUser = await users.findOne({ email });
+  if (!validatedUser) {
+    throw new Error("unable to login");
+  }
+  const isValidated = await bycryptjs.compare(password, validatedUser.password);
+  if (!isValidated) {
+    throw new Error("unable to login");
+  }
+  return validatedUser;
+};
 const users = mongoose.model("users", userSchema);
 
 //exports

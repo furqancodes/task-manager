@@ -2,6 +2,18 @@ const express = require("express");
 const users = require("../models/users");
 const router = new express.Router();
 
+//----------------login----------------
+router.post("/users/login", async (req, res) => {
+  try {
+    const verifiedUser = await users.loginValidation(
+      req.body.email,
+      req.body.password
+    );
+    res.send(verifiedUser);
+  } catch (error) {
+    res.status(400).send();
+  }
+});
 //-------------users crud---------------
 //-------------------------create---------
 router.post("/users", async (req, res) => {
