@@ -4,7 +4,10 @@ const auth = async (req, res, next) => {
   try {
     const token = req.header("Authorization").replace("Bearer ", "");
     const verified = jwt.verify(token, "stringforsigning");
-    const user = await users.find({ _id: verified._id, "tokens.token": token });
+    const user = await users.findOne({
+      _id: verified._id,
+      "tokens.token": token,
+    });
     if (!user) {
       throw new Error();
     }
