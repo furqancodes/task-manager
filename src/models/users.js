@@ -1,6 +1,7 @@
 const validator = require("validator");
 const mongoose = require("mongoose");
 const bycryptjs = require("bcryptjs");
+const jwt = require("jsonwebtoken");
 const userSchema = new mongoose.Schema({
   name: { type: String, required: true, trim: true },
   age: {
@@ -32,6 +33,14 @@ const userSchema = new mongoose.Schema({
       }
     },
   },
+  tokens: [
+    {
+      token: {
+        type: String,
+        required: true,
+      },
+    },
+  ],
 });
 
 userSchema.pre("save", async function (next) {
@@ -50,6 +59,12 @@ userSchema.statics.loginValidation = async (email, password) => {
     throw new Error("unable to login");
   }
   return validatedUser;
+};
+userSchema.methods.generateToken = async function () {
+  const token = jwt.sign({ _id: this.id.toString() }, "stringforsigning");
+  this.tokens = this.tokens.concat({ token });
+  this.save();
+  return token;
 };
 const users = mongoose.model("users", userSchema);
 

@@ -1,5 +1,6 @@
 const express = require("express");
 const users = require("../models/users");
+const auth = require("../middleware/auth");
 const router = new express.Router();
 
 //----------------login----------------
@@ -9,7 +10,8 @@ router.post("/users/login", async (req, res) => {
       req.body.email,
       req.body.password
     );
-    res.send(verifiedUser);
+    const token = await verifiedUser.generateToken();
+    res.send({ verifiedUser, token });
   } catch (error) {
     res.status(400).send();
   }
@@ -20,21 +22,15 @@ router.post("/users", async (req, res) => {
   const createUser = new users(req.body);
   try {
     await createUser.save();
-    res.status(201).send(createUser);
+    const token = await createUser.generateToken();
+    res.status(201).send({ createUser, token });
   } catch (createUserError) {
     res.status(400).send(createUserError);
   }
 });
 //-------------------------read all---------
-router.get("/users", async (req, res) => {
-  try {
-    const readAllUsers = await users.find({});
-    readAllUsers
-      ? res.status(200).send(readAllUsers)
-      : res.status(404).send("user not found");
-  } catch (readAllUserError) {
-    res.status(500).send(readAllUserError);
-  }
+router.get("/users/me", auth, async (req, res) => {
+  res.send(req.user);
 });
 //--------------------------read one-------
 router.get("/users/:userid", async (req, res) => {
