@@ -58,6 +58,7 @@ userSchema.statics.loginValidation = async (email, password) => {
   if (!isValidated) {
     throw new Error("unable to login");
   }
+  // console.log(validatedUser);
   return validatedUser;
 };
 userSchema.methods.generateToken = async function () {
@@ -65,6 +66,12 @@ userSchema.methods.generateToken = async function () {
   this.tokens = this.tokens.concat({ token });
   this.save();
   return token;
+};
+userSchema.methods.toJSON = function () {
+  const userObject = this.toObject();
+  delete userObject.password;
+  delete userObject.tokens;
+  return userObject;
 };
 const users = mongoose.model("users", userSchema);
 
