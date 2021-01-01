@@ -49,7 +49,7 @@ router.post("/users", async (req, res) => {
     res.status(400).send(createUserError);
   }
 });
-//-------------------------read all---------
+//-------------------------read PROFILE---------
 router.get("/users/me", auth, async (req, res) => {
   try {
     res.send(req.user);
@@ -57,19 +57,8 @@ router.get("/users/me", auth, async (req, res) => {
     res.send({ Error: "some error OCccured" });
   }
 });
-//--------------------------read one-------
-router.get("/users/:userid", async (req, res) => {
-  try {
-    const readUser = await users.findById({ _id: req.params.userid });
-    readUser
-      ? res.status(200).send(readUser)
-      : res.status(404).send("user not found");
-  } catch (readUserError) {
-    res.status(500).send(readUserError);
-  }
-});
 //---------------------------update---------
-router.patch("/users/:userid", async (req, res) => {
+router.patch("/users/me", auth, async (req, res) => {
   const userUpdates = Object.keys(req.body);
   const allowedUserUpdates = ["name", "age", "email", "password"];
   const isUpdateValid = userUpdates.every((userUpdate) =>
@@ -80,7 +69,7 @@ router.patch("/users/:userid", async (req, res) => {
     return res.status(400).send("ERROR ! Invalid Update");
   }
   try {
-    const userUpdate = await users.findById(req.params.userid);
+    const userUpdate = await users.findById(req.user._id);
     userUpdates.forEach((user) => {
       userUpdate[user] = req.body[user];
     });
@@ -93,10 +82,12 @@ router.patch("/users/:userid", async (req, res) => {
   }
 });
 //-------------delete--------------------
-router.delete("/users/:userid", async (req, res) => {
+router.delete("/users/me", auth, async (req, res) => {
   try {
-    const deleteUser = await users.findByIdAndDelete(req.params.userid);
-    deleteUser ? res.send(deleteUser) : res.status(404).send("notfound");
+    // const deleteUser = await users.findByIdAndDelete(req.params.userid);
+    // deleteUser ? res.send(deleteUser) : res.status(404).send("notfound");
+    await req.user.remove();
+    res.send(req.user);
   } catch (userDeleteError) {
     res.status(500).send(userDeleteError);
   }
