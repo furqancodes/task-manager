@@ -13,7 +13,7 @@ router.post("/users/login", async (req, res) => {
     const token = await verifiedUser.generateToken();
     res.send({ verifiedUser, token });
   } catch (error) {
-    res.status(400).send();
+    res.status(400).send({ error: "USer not found" });
   }
 });
 //-------------logout--------------------
@@ -69,13 +69,12 @@ router.patch("/users/me", auth, async (req, res) => {
     return res.status(400).send("ERROR ! Invalid Update");
   }
   try {
-    const userUpdate = await users.findById(req.user._id);
     userUpdates.forEach((user) => {
-      userUpdate[user] = req.body[user];
+      req.user[user] = req.body[user];
     });
-    await userUpdate.save();
+    await req.user.save();
     userUpdate
-      ? res.status(200).send(userUpdate)
+      ? res.status(200).send(req.user)
       : res.status(404).send("user not found");
   } catch (updateUserError) {
     res.status(400).send(updateUserError);
