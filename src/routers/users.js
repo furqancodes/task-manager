@@ -16,6 +16,27 @@ router.post("/users/login", async (req, res) => {
     res.status(400).send();
   }
 });
+//-------------logout--------------------
+router.post("/users/logout", auth, async (req, res) => {
+  try {
+    req.user.tokens = req.user.tokens.filter((token) => {
+      return token.token !== req.token;
+    });
+    await req.user.save();
+    res.send();
+  } catch (error) {
+    res.status(500).send({ Error: "Error Occured" });
+  }
+});
+router.post("/users/logoutall", auth, async (req, res) => {
+  try {
+    req.user.tokens = [];
+    await req.user.save();
+    res.send();
+  } catch (error) {
+    res.status(500).send({ Error: "Error Occured" });
+  }
+});
 //-------------users crud---------------
 //-------------------------create---------
 router.post("/users", async (req, res) => {
@@ -30,7 +51,11 @@ router.post("/users", async (req, res) => {
 });
 //-------------------------read all---------
 router.get("/users/me", auth, async (req, res) => {
-  res.send(req.user);
+  try {
+    res.send(req.user);
+  } catch (error) {
+    res.send({ Error: "some error OCccured" });
+  }
 });
 //--------------------------read one-------
 router.get("/users/:userid", async (req, res) => {
