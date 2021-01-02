@@ -1,11 +1,12 @@
 const express = require("express");
 const tasks = require("../models/tasks");
+const auth = require("../middleware/auth");
 const router = new express.Router();
 
 //--------------tasks crud----------------
 //-------------------------create---------
-router.post("/tasks", async (req, res) => {
-  const createTasks = new tasks(req.body);
+router.post("/tasks", auth, async (req, res) => {
+  const createTasks = new tasks({ ...req.body, creater: req.user._id });
   try {
     await createTasks.save();
     res.status(201).send(createTasks);
@@ -14,20 +15,25 @@ router.post("/tasks", async (req, res) => {
   }
 });
 //-------------------------read all---------
-router.get("/tasks", async (req, res) => {
+router.get("/tasks", auth, async (req, res) => {
   try {
-    const readAllTasks = await tasks.find({});
-    readAllTasks
-      ? res.status(200).send(readAllTasks)
-      : res.status(404).send("task not found");
+    // const readAllTasks = await tasks.find({ creater: req.user._id });
+    await req.user.populate("tasks").execPopulate();
+    res.status(200).send(req.user.tasks);
+    // readAllTasks
+    // ? res.status(200).send(readAllTasks)
+    // : res.status(404).send("task not found");
   } catch (readAllTaskError) {
     res.status(500).send(readAllTaskError);
   }
 });
 //-------------------------read one---------
-router.get("/tasks/:taskid", async (req, res) => {
+router.get("/tasks/:taskid", auth, async (req, res) => {
   try {
-    const readTask = await tasks.findById({ _id: req.params.taskid });
+    const readTask = await tasks.findOne({
+      _id: req.params.taskid,
+      owner: req.user._id,
+    });
     readTask
       ? res.status(200).send(readTask)
       : res.status(404).send("task not found");
@@ -36,7 +42,7 @@ router.get("/tasks/:taskid", async (req, res) => {
   }
 });
 //---------------------------update---------
-router.patch("/tasks/:taskid", async (req, res) => {
+router.patch("/tasks/:taskid", auth, async (req, res) => {
   const taskUpdatesKeys = Object.keys(req.body);
   const allowedTaskUpdates = ["description", "completed"];
   const isUpdateValid = taskUpdatesKeys.every((taskUpdate) =>
@@ -47,12 +53,17 @@ router.patch("/tasks/:taskid", async (req, res) => {
     return res.status(400).send("ERROR ! Invalid Update");
   }
   try {
-    const taskUpdate = await tasks.findById(req.params.taskid);
+    const taskUpdate = await tasks.findOne({
+      _id: req.params.taskid,
+      creater: req.user._id,
+    });
+
+    if (!taskUpdate) {
+      return res.status(404).send("task not found");
+    }
     taskUpdatesKeys.forEach((task) => (taskUpdate[task] = req.body[task]));
     await taskUpdate.save();
-    taskUpdate
-      ? res.status(200).send(taskUpdate)
-      : res.status(404).send("task not found");
+    res.send(taskUpdate);
   } catch (updateTaskError) {
     res.status(400).send(updateTaskError);
   }

@@ -42,7 +42,11 @@ const userSchema = new mongoose.Schema({
     },
   ],
 });
-
+userSchema.virtual("tasks", {
+  ref: "tasks",
+  localField: "_id",
+  foreignField: "creater",
+});
 userSchema.pre("save", async function (next) {
   if (this.isModified("password")) {
     this.password = await bycryptjs.hash(this.password, 8);
